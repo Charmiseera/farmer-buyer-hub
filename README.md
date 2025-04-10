@@ -26,9 +26,9 @@ AgriConnect is an Agricultural Product Marketplace that connects farmers directl
    The frontend will run on port 3000.
 
 ## MongoDB Connection
-The application is connected to MongoDB with the following connection string:
+The application connects to MongoDB Atlas with the following connection string:
 ```
-mongodb+srv://techyguides8:tCUYecjIdwGgP0Oo@cluster0.xnbcp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+mongodb+srv://techyguides8:tCUYecjIdwGgP0Oo@cluster0.xnbcp.mongodb.net/agriconnect?retryWrites=true&w=majority&appName=Cluster0
 ```
 
 ## Features
@@ -41,4 +41,5 @@ mongodb+srv://techyguides8:tCUYecjIdwGgP0Oo@cluster0.xnbcp.mongodb.net/?retryWri
 ## Technology Stack
 - Frontend: React, TailwindCSS
 - Backend: Node.js, Express
-- Database: MongoDB
+- Database: MongoDB Atlas
+

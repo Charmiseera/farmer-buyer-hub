@@ -102,31 +102,9 @@ export const productService = {
     }
   },
 
-  createProduct: async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & { 
-    image: string | File | null 
-  }): Promise<Product> => {
+  createProduct: async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> => {
     try {
-      const formData = new FormData();
-      
-      // Add all product fields to the form data
-      Object.entries(productData).forEach(([key, value]) => {
-        if (key !== 'image' || typeof value === 'string') {
-          formData.append(key, String(value));
-        }
-      });
-      
-      // If image is a File object, append it
-      const imageValue = productData.image;
-      if (imageValue && typeof imageValue !== 'string' && imageValue instanceof File) {
-        formData.append('image', imageValue);
-      }
-      
-      const response = await api.post('/products', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
+      const response = await api.post('/products', productData);
       return response.data;
     } catch (error) {
       console.error('Create product error:', error);

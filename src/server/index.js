@@ -1,4 +1,3 @@
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -16,7 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // MongoDB Connection
-const MONGODB_URI = 'mongodb+srv://techyguides8:tCUYecjIdwGgP0Oo@cluster0.xnbcp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = 'mongodb+srv://techyguides8:tCUYecjIdwGgP0Oo@cluster0.xnbcp.mongodb.net/agriconnect?retryWrites=true&w=majority&appName=Cluster0';
 
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
@@ -38,7 +37,7 @@ const productSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   unit: { type: String, required: true },
   price: { type: Number, required: true },
-  image: { type: String, required: true },
+  image: { type: String, default: 'https://via.placeholder.com/400x300?text=No+Image' },
   availableUntil: { type: Date, required: true },
   farmerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   farmerName: { type: String },
@@ -275,6 +274,32 @@ app.get('/api/orders/farmer/:farmerId', async (req, res) => {
       createdAt: order.createdAt,
       updatedAt: order.updatedAt
     })));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Modified product creation route to handle JSON directly
+app.post('/api/products', async (req, res) => {
+  try {
+    const productData = req.body;
+    const product = new Product(productData);
+    await product.save();
+    res.status(201).json({
+      id: product._id,
+      cropName: product.cropName,
+      description: product.description,
+      quantity: product.quantity,
+      unit: product.unit,
+      price: product.price,
+      image: product.image,
+      availableUntil: product.availableUntil,
+      farmerId: product.farmerId,
+      farmerName: product.farmerName,
+      location: product.location,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
