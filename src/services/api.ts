@@ -102,7 +102,7 @@ export const productService = {
     }
   },
 
-  createProduct: async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> => {
+  createProduct: async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & { image?: File | string }): Promise<Product> => {
     try {
       const formData = new FormData();
       
@@ -114,7 +114,7 @@ export const productService = {
       });
       
       // If image is a File object, append it
-      if (productData.image && typeof productData.image !== 'string' && productData.image instanceof File) {
+      if (productData.image && productData.image instanceof File) {
         formData.append('image', productData.image);
       }
       
