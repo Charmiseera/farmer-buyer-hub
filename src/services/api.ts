@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import { Product, Order, User } from '../types';
 
@@ -115,7 +114,7 @@ export const productService = {
       });
       
       // If image is a File object, append it
-      if (productData.image instanceof File) {
+      if (productData.image && typeof productData.image !== 'string' && productData.image instanceof File) {
         formData.append('image', productData.image);
       }
       
