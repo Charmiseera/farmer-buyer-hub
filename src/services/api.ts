@@ -102,7 +102,9 @@ export const productService = {
     }
   },
 
-  createProduct: async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & { image?: File | string }): Promise<Product> => {
+  createProduct: async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & { 
+    image: string | File | null 
+  }): Promise<Product> => {
     try {
       const formData = new FormData();
       
@@ -114,8 +116,9 @@ export const productService = {
       });
       
       // If image is a File object, append it
-      if (productData.image && productData.image instanceof File) {
-        formData.append('image', productData.image);
+      const imageValue = productData.image;
+      if (imageValue && typeof imageValue !== 'string' && imageValue instanceof File) {
+        formData.append('image', imageValue);
       }
       
       const response = await api.post('/products', formData, {
