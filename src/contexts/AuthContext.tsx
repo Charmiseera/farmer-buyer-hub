@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { User, AuthState, UserRole } from '../types';
-import { authService } from '../services/api';
+import { authService } from '../services';
 
 // Define available actions
 type AuthAction =
