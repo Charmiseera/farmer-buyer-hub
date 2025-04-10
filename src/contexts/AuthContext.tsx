@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { User, AuthState, UserRole } from '../types';
+import { authService } from '../services/api';
 
 // Define available actions
 type AuthAction =
@@ -24,7 +25,6 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
     case 'LOGIN_SUCCESS':
     case 'REGISTER_SUCCESS':
-      localStorage.setItem('token', 'dummy-token-will-be-replaced');
       return {
         ...state,
         isAuthenticated: true,
@@ -80,27 +80,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Mock auth methods - these will be replaced with actual API calls
   const login = async (email: string, password: string) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      
-      // For demo, we'll create a mock user based on email
-      const role: UserRole = email.includes('farmer') ? 'farmer' : 'buyer';
-      
-      const mockUser: User = {
-        id: '1',
-        name: email.split('@')[0],
-        email,
-        role,
-        location: 'Sample Location',
-        phone: '555-123-4567'
-      };
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      dispatch({ type: 'LOGIN_SUCCESS', payload: mockUser });
+      const user = await authService.login(email, password);
+      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
     } catch (error) {
       dispatch({ type: 'AUTH_ERROR', payload: 'Invalid credentials' });
     }
@@ -109,27 +93,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string, role: UserRole, location: string, phone: string) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      
-      // Create a mock user
-      const mockUser: User = {
-        id: '1',
-        name,
-        email,
-        role,
-        location,
-        phone
-      };
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      dispatch({ type: 'REGISTER_SUCCESS', payload: mockUser });
+      const user = await authService.register({ name, email, password, role, location, phone });
+      dispatch({ type: 'REGISTER_SUCCESS', payload: user });
     } catch (error) {
       dispatch({ type: 'AUTH_ERROR', payload: 'Registration failed' });
     }
   };
 
   const logout = () => {
+    authService.logout();
     dispatch({ type: 'LOGOUT' });
   };
 
@@ -139,24 +111,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check for token on initial load
   useEffect(() => {
-    // This would normally verify the JWT with the backend
-    const token = localStorage.getItem('token');
-    
-    if (token) {
-      // For demo, we'll create a mock user
-      const mockUser: User = {
-        id: '1',
-        name: 'Demo User',
-        email: 'user@example.com',
-        role: 'farmer',
-        location: 'Sample Location',
-        phone: '555-123-4567'
-      };
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
       
-      dispatch({ type: 'LOGIN_SUCCESS', payload: mockUser });
-    } else {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
+      if (token) {
+        try {
+          const user = await authService.getCurrentUser();
+          dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+        } catch (error) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      } else {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    };
+    
+    checkAuth();
   }, []);
 
   return (
