@@ -207,27 +207,24 @@ app.get('/api/products/:id', async (req, res) => {
 });
 
 // Order routes
-app.get('/api/orders/buyer/:buyerId', async (req, res) => {
+app.post('/api/orders', async (req, res) => {
   try {
-    const orders = await Order.find({ buyerId: req.params.buyerId }).populate('productId');
-    res.json(orders.map(order => ({
+    const orderData = req.body;
+    const order = new Order(orderData);
+    await order.save();
+    
+    // Update product quantity
+    if (orderData.productId && orderData.quantityOrdered) {
+      const product = await Product.findById(orderData.productId);
+      if (product) {
+        product.quantity -= orderData.quantityOrdered;
+        await product.save();
+      }
+    }
+    
+    res.status(201).json({
       id: order._id,
-      productId: order.productId._id,
-      product: {
-        id: order.productId._id,
-        cropName: order.productId.cropName,
-        description: order.productId.description,
-        quantity: order.productId.quantity,
-        unit: order.productId.unit,
-        price: order.productId.price,
-        image: order.productId.image,
-        availableUntil: order.productId.availableUntil,
-        farmerId: order.productId.farmerId,
-        farmerName: order.productId.farmerName,
-        location: order.productId.location,
-        createdAt: order.productId.createdAt,
-        updatedAt: order.productId.updatedAt
-      },
+      productId: order.productId,
       buyerId: order.buyerId,
       buyerName: order.buyerName,
       farmerId: order.farmerId,
@@ -237,16 +234,51 @@ app.get('/api/orders/buyer/:buyerId', async (req, res) => {
       status: order.status,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt
-    })));
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.get('/api/orders/farmer/:farmerId', async (req, res) => {
+app.put('/api/orders/:id/status', async (req, res) => {
   try {
-    const orders = await Order.find({ farmerId: req.params.farmerId }).populate('productId');
-    res.json(orders.map(order => ({
+    const { status } = req.body;
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    order.status = status;
+    await order.save();
+    
+    res.json({
+      id: order._id,
+      productId: order.productId,
+      buyerId: order.buyerId,
+      buyerName: order.buyerName,
+      farmerId: order.farmerId,
+      farmerName: order.farmerName,
+      quantityOrdered: order.quantityOrdered,
+      totalPrice: order.totalPrice,
+      status: order.status,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/orders/:id', async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate('productId');
+    
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    res.json({
       id: order._id,
       productId: order.productId._id,
       product: {
@@ -273,7 +305,7 @@ app.get('/api/orders/farmer/:farmerId', async (req, res) => {
       status: order.status,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt
-    })));
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
